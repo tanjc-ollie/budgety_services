@@ -1,5 +1,5 @@
-from api.models.plaid.credit import Credit
-from api.models.plaid.depository import Depository
+from api.entities.plaid.credit import Credit
+from api.entities.plaid.depository import Depository
 
 class AccountFilters:
     def __init__(self,

@@ -2,13 +2,14 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response as HttpResponse
 import os
+import json
 
 from api.enums.account_types import AccountTypes
-from api.models.plaid.account_filters import AccountFilters
-from api.models.plaid.create_token_request import CreateTokenRequest
-from api.models.plaid.credit import Credit
-from api.models.plaid.depository import Depository
-from api.models.plaid.user import User
+from api.entities.plaid.account_filters import AccountFilters
+from api.entities.plaid.create_token_request import CreateTokenRequest
+from api.entities.plaid.credit import Credit
+from api.entities.plaid.depository import Depository
+from api.entities.plaid.user import User
 from api.serializers.create_token_request_serializer import CreateTokenRequestSerializer
 
 @api_view(["GET"])
@@ -16,7 +17,7 @@ def test(request):
     return HttpResponse({"result": "test endpoint is working"})
 
 @api_view(["GET"])
-def get_bank_records(request):
+def get_plaid_transactions(request):
     return HttpResponse()
 
 @api_view(["POST"])
@@ -42,10 +43,10 @@ def get_plaid_token(request):
             headers=headers,
             json=request_serializer.data)
         if response:
-            return HttpResponse(response.json())
+            data = json.loads(response.json())
+            return HttpResponse(data["link_token"])
         else:
-            return HttpResponse(response)
+            return HttpResponse(response.reason)
         
     except Exception as ex:
-        print(ex)
-        return HttpResponse(ex)
+        return HttpResponse("Exception occurred: " + ex)

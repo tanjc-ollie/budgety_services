@@ -21,5 +21,6 @@ from api import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('test/', views.test, name='test'),
-    path('plaid/create_token', views.get_plaid_token, name='create_plaid_token')
+    path('plaid/create_token', views.get_plaid_token, name='create_plaid_token'),
+    path('plaid/get_transactions', views.get_plaid_transactions, name='create_plaid_token'),
 ]

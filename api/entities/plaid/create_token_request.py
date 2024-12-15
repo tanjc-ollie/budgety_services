@@ -1,5 +1,5 @@
-from api.models.plaid.account_filters import AccountFilters
-from api.models.plaid.user import User
+from api.entities.plaid.account_filters import AccountFilters
+from api.entities.plaid.user import User
 
 class CreateTokenRequest:
     def __init__(

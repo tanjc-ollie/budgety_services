@@ -1,4 +1,4 @@
-from api.models.plaid.account import Account
+from api.entities.plaid.account import Account
 
 class Depository(Account):
     def __init__(self,
