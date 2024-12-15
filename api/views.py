@@ -18,12 +18,8 @@ from api.models import LinkToken
 def test(request):
     return HttpResponse({"result": "test endpoint is working"})
 
-@api_view(["GET"])
-def get_plaid_transactions(request):
-    return HttpResponse()
-
 @api_view(["POST"])
-def get_plaid_token(request):
+def get_plaid_link_token(request):
     url: str = "https://sandbox.plaid.com/link/token/create"
     headers = {
         "PLAID-CLIENT-ID": os.getenv("PLAID_CLIENT_ID"),
@@ -63,3 +59,7 @@ def get_plaid_token(request):
         
     except Exception as ex:
         return HttpResponse("Exception occurred: " + ex)
+
+@api_view(["GET"])
+def get_plaid_transactions(request):
+    return HttpResponse()
