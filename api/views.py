@@ -145,4 +145,29 @@ def get_plaid_link_token(request):
 
 @api_view(["POST"])
 def get_plaid_transactions(request):
-    return HttpResponse()
+    url: str = "https://sandbox.plaid.com/transactions/sync"
+    headers = {
+        "PLAID-CLIENT-ID": os.getenv("PLAID_CLIENT_ID"),
+        "PLAID-SECRET": os.getenv("PLAID_SECRET"),
+    }
+    access_token: AccessToken = AccessToken.objects.order_by("id").last()
+    if not access_token:
+        return HttpResponse({"result":"please run get_plaid_access_token first"})
+    req = {
+        "access_token": access_token.token
+    }
+
+    try:
+        response = requests.post(
+            url=url,
+            headers=headers,
+            json=req
+        )
+        if not response:
+            raise Exception("failed:" + response.reason)
+        
+        return HttpResponse(response.json())
+        
+    except Exception as ex:
+        return HttpResponse("Exception occurred: " + ex)
+    
