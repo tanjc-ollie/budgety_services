@@ -2,7 +2,8 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response as HttpResponse
 import os
-import json
+
+from api.models import LinkToken, Institution
 
 from api.enums.account_types import AccountTypes
 from api.entities.plaid.account_filters import AccountFilters
@@ -12,11 +13,47 @@ from api.entities.plaid.depository import Depository
 from api.entities.plaid.user import User
 from api.serializers.create_token_request_serializer import CreateTokenRequestSerializer
 from api.serializers.create_token_response_serializer import CreateTokenResponseSerializer
-from api.models import LinkToken
+from api.entities.plaid.search_institutions_request import SearchInstitutionsRequest
+from api.serializers.search_institutions_request_serializer import SearchInstitutionsRequestSerializer
+from api.serializers.search_institutions_response_serializer import SearchInstitutionsResponseSerializer
 
 @api_view(["GET"])
 def test(request):
     return HttpResponse({"result": "test endpoint is working"})
+
+@api_view(["POST"])
+def search_plaid_institutions(request):
+    url = "https://sandbox.plaid.com/institutions/search"
+    search_word: str = "td canada trust"
+    headers = {
+        "PLAID-CLIENT-ID": os.getenv("PLAID_CLIENT_ID"),
+        "PLAID-SECRET": os.getenv("PLAID_SECRET"),
+    }
+    req = SearchInstitutionsRequest(query=search_word,products=["transactions"],country_codes=["CA"])
+    req_ser = SearchInstitutionsRequestSerializer(req)
+
+    try:
+        response = requests.post(
+            url=url,
+            headers=headers,
+            json=req_ser.data
+        )
+
+        if response:
+            data = response.json()
+            res_ser = SearchInstitutionsResponseSerializer(data=data)
+            if res_ser.is_valid(raise_exception=True):
+                valid_data = res_ser.validated_data
+                institutions = valid_data["institutions"]
+                for i in institutions:
+                    Institution.objects.get_or_create(
+                        institution_id=i["institution_id"],
+                        name=i["name"]
+                    )
+
+                return HttpResponse(institutions)
+    except Exception as ex:
+        return HttpResponse("Exception occurred: " + ex)
 
 @api_view(["POST"])
 def get_plaid_link_token(request):
@@ -60,6 +97,6 @@ def get_plaid_link_token(request):
     except Exception as ex:
         return HttpResponse("Exception occurred: " + ex)
 
-@api_view(["GET"])
+@api_view(["POST"])
 def get_plaid_transactions(request):
     return HttpResponse()

@@ -2,8 +2,8 @@ from django.db import models
 
 # Create your models here.
 class LinkToken(models.Model):
-    user_id = models.CharField(max_length=256)
-    token = models.CharField(max_length=256)
+    user_id = models.CharField(max_length=255)
+    token = models.CharField(max_length=255)
     expiration = models.DateTimeField()
 
     class Meta:
@@ -16,3 +16,10 @@ class Transaction(models.Model):
 
     class Meta:
         db_table = "transactions"
+
+class Institution(models.Model):
+    institution_id = models.CharField(max_length=255,unique=True)
+    name = models.CharField(max_length=255,unique=True)
+
+    class Meta:
+        db_table = "institution"

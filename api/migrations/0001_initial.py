@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
             name='LinkToken',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.CharField(max_length=256)),
-                ('token', models.CharField(max_length=256)),
+                ('user_id', models.CharField(max_length=255)),
+                ('token', models.CharField(max_length=255)),
                 ('expiration', models.DateTimeField()),
             ],
             options={
