@@ -23,3 +23,9 @@ class Institution(models.Model):
 
     class Meta:
         db_table = "institution"
+
+class AccessToken(models.Model):
+    token = models.CharField(max_length=255)
+
+    class Meta:
+        db_table="access_token"

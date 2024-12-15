@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response as HttpResponse
 import os
 
-from api.models import LinkToken, Institution
+from api.models import AccessToken, LinkToken, Institution
 
 from api.enums.account_types import AccountTypes
 from api.entities.plaid.account_filters import AccountFilters
@@ -50,8 +50,54 @@ def search_plaid_institutions(request):
                         institution_id=i["institution_id"],
                         name=i["name"]
                     )
-
                 return HttpResponse(institutions)
+            else:
+                return HttpResponse(res_ser.error_messages)
+    except Exception as ex:
+        return HttpResponse("Exception occurred: " + ex)
+    
+@api_view(["POST"])
+def get_plaid_access_token(request):
+    # get public_token_first, then access_token
+
+    headers = {
+        "PLAID-CLIENT-ID": os.getenv("PLAID_CLIENT_ID"),
+        "PLAID-SECRET": os.getenv("PLAID_SECRET"),
+    }
+    create_public_token_request = {
+        "institution_id": "ins_42",
+        "initial_products": ["transactions"],
+        "options": {
+            "transactions": {
+                "start_date": "2024-05-01",
+                "end_date": "2024-06-01"
+            }
+        }
+    }
+
+    try:
+        create_public_token_response = requests.post(
+            url="https://sandbox.plaid.com/sandbox/public_token/create",
+            headers=headers,
+            json=create_public_token_request
+        )
+        if not create_public_token_response:
+            raise Exception(create_public_token_response.reason)
+
+        data = create_public_token_response.json()
+
+        exchange_token_response = requests.post(
+            url="https://sandbox.plaid.com/item/public_token/exchange",
+            headers=headers,
+            json={"public_token":data["public_token"]}
+        )
+        if not exchange_token_response:
+            raise Exception(exchange_token_response.reason)
+        
+        data = exchange_token_response.json()
+        saved_access_token = AccessToken.objects.create(token=data["access_token"])
+        return HttpResponse({"result": "successful"})
+        
     except Exception as ex:
         return HttpResponse("Exception occurred: " + ex)
 
