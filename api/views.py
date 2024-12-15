@@ -11,6 +11,8 @@ from api.entities.plaid.credit import Credit
 from api.entities.plaid.depository import Depository
 from api.entities.plaid.user import User
 from api.serializers.create_token_request_serializer import CreateTokenRequestSerializer
+from api.serializers.create_token_response_serializer import CreateTokenResponseSerializer
+from api.models import LinkToken
 
 @api_view(["GET"])
 def test(request):
@@ -41,10 +43,21 @@ def get_plaid_token(request):
         response = requests.post(
             url=url,
             headers=headers,
-            json=request_serializer.data)
+            json=request_serializer.data
+        )
         if response:
-            data = json.loads(response.json())
-            return HttpResponse(data["link_token"])
+            data = response.json()
+            response_serializer = CreateTokenResponseSerializer(data=data)
+            if response_serializer.is_valid(raise_exception=True):
+                valid_data = response_serializer.validated_data
+                token = LinkToken.objects.create(
+                    user_id="test_user",
+                    token=valid_data["link_token"],
+                    expiration=valid_data["expiration"]
+                )
+                return HttpResponse({"token":token.token})
+            else:
+                return HttpResponse(response_serializer.error_messages)
         else:
             return HttpResponse(response.reason)
         
